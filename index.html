@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Table Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='18' height='18' x='3' y='3' rx='2' fill='%233b82f6'/><path fill='white' d='M7 7h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM7 11h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM7 15h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z'/></svg>" type="image/svg+xml">
+
+    <style>
+        .markdown-body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #24292e;
+        }
+        .markdown-body table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        .markdown-body table td, 
+        .markdown-body table th {
+            border: 1px solid #dfe2e5;
+            padding: 6px 13px;
+        }
+        .markdown-body table tr {
+            border-top: 1px solid #c6cbd1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-10 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-table mr-3 text-blue-600"></i>Markdown Table Generator
+            </h1>
+            <div class="flex items-center justify-center gap-2">
+                <p class="text-gray-600">Create GitHub-ready tables in seconds</p>
+                <a href="https://github.com/adam-kad/markdown-table-generator" 
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    class="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg text-sm font-normal transition">
+                    <i class="fab fa-github"></i>
+                    <span>GitHub</span>
+                    <span id="star-count" class="text-gray-600 ml-1">•</span>
+                </a>
+            </div>
+        </header>
+
+        <div class="grid lg:grid-cols-2 gap-8">
+            <div class="space-y-6">
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">
+                        <i class="fas fa-heading mr-2 text-blue-500"></i>Table Headers
+                    </h2>
+                    <input type="text" id="headers" 
+                           class="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition" 
+                           placeholder="Name, Price, Rating, Availability"
+                           value="Language, Difficulty, Popularity, Learning">
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-gray-700">
+                            <i class="fas fa-list mr-2 text-green-500"></i>Data Rows
+                        </h2>
+                        <button onclick="addRow()" 
+                                class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition flex items-center">
+                            <i class="fas fa-plus mr-2"></i>Add Row
+                        </button>
+                    </div>
+                    
+                    <div id="rows-container" class="space-y-3"></div>
+                    
+                    <div class="mt-6 grid grid-cols-4 gap-2">
+                        <button onclick="fillExample('languages')" class="p-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-sm">
+                            Languages
+                        </button>
+                        <button onclick="fillExample('pricing')" class="p-3 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition text-sm">
+                            Pricing
+                        </button>
+                        <button onclick="fillExample('roadmap')" class="p-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition text-sm">
+                            Roadmap
+                        </button>
+                        <button onclick="clearAll()" class="p-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition text-sm">
+                            Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-gray-800 rounded-xl shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-white">
+                            <i class="fas fa-code mr-2 text-green-400"></i>Markdown Code
+                        </h2>
+                        <div class="flex gap-2">
+                            <button onclick="downloadFile()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition flex items-center text-sm">
+                                <i class="fas fa-download mr-2"></i>Download
+                            </button>
+                            <button onclick="copyMarkdown()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition flex items-center text-sm">
+                                <i class="fas fa-copy mr-2"></i>Copy
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <textarea id="markdown-output" 
+                              class="w-full h-64 p-4 bg-gray-900 text-green-400 rounded-lg font-mono text-sm resize-none" 
+                              aria-label="Generated markdown code"
+                              readonly spellcheck="false">
+                    </textarea>
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700">
+                        <i class="fas fa-eye mr-2 text-purple-500"></i>Preview
+                    </h2>
+                    <div id="preview" class="markdown-body border-2 border-gray-100 rounded-lg p-6 min-h-[200px]"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-12 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
+            <p>Made with <i class="fas fa-heart text-red-500 mx-1"></i> for developers</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            addRow();
+            generateTable();
+        });
+
+        let rowCounter = 1;
+
+        function addRow() {
+            const container = document.getElementById('rows-container');
+            const row = document.createElement('div');
+            row.className = 'flex gap-2 items-center';
+            row.innerHTML = `
+                <input type="text" 
+                       class="flex-1 p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition" 
+                       placeholder="Row ${rowCounter} data, comma separated"
+                       oninput="generateTable()">
+                <button onclick="removeRow(this)" 
+                        class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(row);
+            rowCounter++;
+        }
+
+        function removeRow(button) {
+            button.parentElement.remove();
+            generateTable();
+        }
+
+        function generateTable() {
+            const headers = document.getElementById('headers').value
+                .split(',')
+                .map(h => h.trim())
+                .filter(h => h !== '');
+            
+            if (headers.length === 0) {
+                document.getElementById('markdown-output').value = '# Enter table headers above';
+                document.getElementById('preview').innerHTML = '<p class="text-gray-500">Enter table headers above</p>';
+                return;
+            }
+
+            const rows = [];
+            document.querySelectorAll('#rows-container input').forEach(input => {
+                const values = input.value.split(',').map(v => v.trim());
+                if (values.length > 0 && values[0] !== '') {
+                    rows.push(values);
+                }
+            });
+
+            let markdown = '| ' + headers.join(' | ') + ' |\n';
+            markdown += '| ' + headers.map(() => '---').join(' | ') + ' |\n';
+            
+            rows.forEach(row => {
+                const paddedRow = [...row];
+                while (paddedRow.length < headers.length) {
+                    paddedRow.push('');
+                }
+                markdown += '| ' + paddedRow.join(' | ') + ' |\n';
+            });
+
+            const output = document.getElementById('markdown-output');
+            output.value = markdown;
+            updatePreview(markdown);
+        }
+
+        function updatePreview(markdown) {
+            try {
+                const html = marked.parse(markdown);
+                document.getElementById('preview').innerHTML = html;
+            } catch (e) {
+                document.getElementById('preview').innerHTML = 
+                    `<p class="text-red-500">Preview error: ${e.message}</p>`;
+            }
+        }
+
+        function copyMarkdown() {
+            const output = document.getElementById('markdown-output');
+            output.select();
+            output.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(output.value);
+            
+            const btn = event.currentTarget;
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check mr-2"></i>Copied!';
+            btn.classList.add('bg-green-700');
+            setTimeout(() => {
+                btn.innerHTML = original;
+                btn.classList.remove('bg-green-700');
+            }, 2000);
+        }
+
+        function downloadFile() {
+            const content = document.getElementById('markdown-output').value;
+            const blob = new Blob([content], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'table.md';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function fillExample(type) {
+            const examples = {
+                languages: {
+                    headers: 'Language, Difficulty, Popularity, Learning',
+                    rows: [
+                        'Python, Low, ★★★★★, Yes',
+                        'JavaScript, Medium, ★★★★★, Yes',
+                        'Rust, High, ★★★☆☆, No',
+                        'Go, Medium, ★★★★☆, Yes'
+                    ]
+                },
+                pricing: {
+                    headers: 'Plan, Price, Users, Support',
+                    rows: [
+                        'Basic, $10/month, 1, Email only',
+                        'Pro, $25/month, 5, Priority',
+                        'Business, $100/month, ∞, 24/7 phone'
+                    ]
+                },
+                roadmap: {
+                    headers: 'Quarter, Feature, Status, Progress',
+                    rows: [
+                        'Q1 2024, Authentication, ✅ Done, 100%',
+                        'Q2 2024, Payments, 🔄 In Progress, 75%',
+                        'Q3 2024, API v2, 📅 Planned, 0%'
+                    ]
+                }
+            };
+
+            const ex = examples[type];
+            document.getElementById('headers').value = ex.headers;
+            
+            const container = document.getElementById('rows-container');
+            container.innerHTML = '';
+            
+            ex.rows.forEach((row) => {
+                const div = document.createElement('div');
+                div.className = 'flex gap-2 items-center';
+                div.innerHTML = `
+                    <input type="text" 
+                           class="flex-1 p-3 border border-gray-300 rounded-lg" 
+                           value="${row}"
+                           oninput="generateTable()">
+                    <button onclick="removeRow(this)" 
+                            class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+            
+            generateTable();
+        }
+
+        function clearAll() {
+            document.getElementById('headers').value = '';
+            document.getElementById('rows-container').innerHTML = '';
+            rowCounter = 1;
+            addRow();
+            generateTable();
+        }
+
+        document.getElementById('headers').addEventListener('input', generateTable);
+    </script>
+</body>
+</html>
